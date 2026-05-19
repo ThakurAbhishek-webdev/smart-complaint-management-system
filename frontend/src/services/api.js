@@ -4,15 +4,17 @@ import axios from 'axios';
 
 // Base URL for the backend API
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'https://aifsd-backend-5xbc.onrender.com/api',
+  baseURL: process.env.REACT_APP_API_URL || 'https://complaint-backend-szpp.onrender.com/api',
 });
 
 // Interceptor: Automatically attach JWT token to every request if it exists
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
 });
 
@@ -37,10 +39,12 @@ export const searchEmployees = (department) =>
   API.get(`/employees/search?department=${department}`);
 
 // PUT /api/employees/:id
-export const updateEmployee = (id, data) => API.put(`/employees/${id}`, data);
+export const updateEmployee = (id, data) =>
+  API.put(`/employees/${id}`, data);
 
 // DELETE /api/employees/:id
-export const deleteEmployee = (id) => API.delete(`/employees/${id}`);
+export const deleteEmployee = (id) =>
+  API.delete(`/employees/${id}`);
 
 // ===== AI APIs =====
 
