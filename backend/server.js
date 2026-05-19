@@ -1,37 +1,51 @@
-// server.js — Main entry point for the Express backend
+// server.js — Main entry point for Smart Complaint Management backend
 
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+
 const connectDB = require('./config/db');
 const errorMiddleware = require('./middleware/errorMiddleware');
 
 // Load environment variables
 dotenv.config();
 
-// Connect to MongoDB
+// Connect MongoDB
 connectDB();
 
 const app = express();
 
-// Middleware: Parse JSON and allow cross-origin requests from frontend
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// ================= ROUTES =================
+
+// Auth Routes
 app.use('/api/auth', require('./routes/authRoutes'));
+
+// Complaint Routes
 app.use('/api/employees', require('./routes/employeeRoutes'));
+
+// AI Routes
 app.use('/api/ai', require('./routes/aiRoutes'));
 
-// Health check route
+// ================= ROOT ROUTE =================
+
 app.get('/', (req, res) => {
-  res.json({ message: 'Employee Analytics API is running!' });
+  res.json({
+    message: 'Smart Complaint Management API is running!',
+  });
 });
 
-// Global error handler (must be last)
+// ================= ERROR HANDLER =================
+
 app.use(errorMiddleware);
 
+// ================= SERVER =================
+
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
