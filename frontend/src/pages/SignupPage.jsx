@@ -49,7 +49,7 @@ function SignupPage() {
     <div className="auth-wrapper">
       <div className="auth-card">
         <h2>Create Account 🚀</h2>
-        <p>Sign up to use Employee Analytics</p>
+        <p>Sign up to use Smart Complaint Management System</p>
 
         {error && <div className="alert alert-error">{error}</div>}
 

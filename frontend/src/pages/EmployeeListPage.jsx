@@ -1,5 +1,3 @@
-// src/pages/EmployeeListPage.jsx — Main page showing all employees with search & delete
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getEmployees, searchEmployees, deleteEmployee } from '../services/api';
@@ -11,7 +9,7 @@ function EmployeeListPage() {
   const [searchDept, setSearchDept] = useState('');
   const [message, setMessage] = useState('');
 
-  // Fetch all employees on component mount
+  // Fetch all complaints
   useEffect(() => {
     fetchAllEmployees();
   }, []);
@@ -22,13 +20,13 @@ function EmployeeListPage() {
       const res = await getEmployees();
       setEmployees(res.data);
     } catch (err) {
-      setError('Failed to fetch employees. Please login again.');
+      setError('Failed to fetch complaints. Please login again.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Search by department
+  // Search complaints by category
   const handleSearch = async (e) => {
     e.preventDefault();
     try {
@@ -42,27 +40,30 @@ function EmployeeListPage() {
     }
   };
 
-  // Reset search and show all
+  // Reset filters
   const handleReset = () => {
     setSearchDept('');
     fetchAllEmployees();
   };
 
-  // Delete an employee
+  // Delete complaint
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete ${name}?`)) return;
+    if (!window.confirm(`Delete complaint from ${name}?`)) return;
+
     try {
       await deleteEmployee(id);
-      setMessage(`${name} deleted successfully.`);
-      // Remove from local state without re-fetching
+
+      setMessage(`Complaint deleted successfully.`);
+
       setEmployees(employees.filter((emp) => emp._id !== id));
+
       setTimeout(() => setMessage(''), 3000);
     } catch (err) {
-      setError('Failed to delete employee.');
+      setError('Failed to delete complaint.');
     }
   };
 
-  // Helper: Get score badge class based on score value
+  // Priority badge colors
   const getScoreClass = (score) => {
     if (score >= 80) return 'score-badge score-high';
     if (score >= 60) return 'score-badge score-mid';
@@ -71,11 +72,16 @@ function EmployeeListPage() {
 
   return (
     <div className="page-wrapper">
+
       {/* Header */}
       <div className="page-header">
-        <h1>👥 Employee List</h1>
-        <Link to="/employees/add" id="add-emp-link" className="btn btn-primary">
-          + Add Employee
+        <h1>🛠️ Complaint List</h1>
+
+        <Link
+          to="/employees/add"
+          className="btn btn-primary"
+        >
+          + Add Complaint
         </Link>
       </div>
 
@@ -83,121 +89,185 @@ function EmployeeListPage() {
       {error && <div className="alert alert-error">{error}</div>}
       {message && <div className="alert alert-success">{message}</div>}
 
-      {/* Search & Filter Section */}
+      {/* Search Section */}
       <div className="card" style={{ marginBottom: '20px' }}>
         <form className="search-bar" onSubmit={handleSearch}>
+
           <select
-            id="search-dept"
             value={searchDept}
             onChange={(e) => setSearchDept(e.target.value)}
           >
-            <option value="">-- Filter by Department --</option>
-            <option>Engineering</option>
-            <option>Marketing</option>
-            <option>Sales</option>
-            <option>Human Resources</option>
-            <option>Finance</option>
-            <option>Operations</option>
-            <option>Design</option>
-            <option>Product</option>
+            <option value="">-- Filter by Category --</option>
+
+            <option>Water Supply</option>
+            <option>Electricity</option>
+            <option>Road Damage</option>
+            <option>Garbage</option>
+            <option>Internet</option>
+            <option>Sanitation</option>
           </select>
 
-          <button type="submit" id="search-btn" className="btn btn-primary">
+          <button
+            type="submit"
+            className="btn btn-primary"
+          >
             🔍 Search
           </button>
-          <button type="button" id="reset-btn" className="btn btn-secondary" onClick={handleReset}>
+
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={handleReset}
+          >
             Reset
           </button>
         </form>
       </div>
 
-      {/* Employee Table */}
+      {/* Complaint Table */}
       <div className="card">
+
         {loading ? (
-          <div className="loading">Loading employees...</div>
+          <div className="loading">
+            Loading complaints...
+          </div>
+
         ) : employees.length === 0 ? (
+
           <div className="empty-state">
-            <p>No employees found.</p>
-            <Link to="/employees/add" className="btn btn-primary">
-              Add First Employee
+            <p>No complaints found.</p>
+
+            <Link
+              to="/employees/add"
+              className="btn btn-primary"
+            >
+              Register First Complaint
             </Link>
           </div>
+
         ) : (
+
           <div className="table-wrapper">
-            <p style={{ marginBottom: '12px', color: '#64748b', fontSize: '0.9rem' }}>
-              Showing {employees.length} employee{employees.length !== 1 ? 's' : ''}
+
+            <p
+              style={{
+                marginBottom: '12px',
+                color: '#64748b',
+                fontSize: '0.9rem'
+              }}
+            >
+              Showing {employees.length} complaint
+              {employees.length !== 1 ? 's' : ''}
             </p>
+
             <table>
+
               <thead>
                 <tr>
                   <th>#</th>
                   <th>Name</th>
                   <th>Email</th>
-                  <th>Department</th>
-                  <th>Skills</th>
-                  <th>Score</th>
-                  <th>Exp (yrs)</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th>Priority</th>
+                  <th>Location</th>
                   <th>Actions</th>
                 </tr>
               </thead>
+
               <tbody>
+
                 {employees.map((emp, index) => (
                   <tr key={emp._id}>
+
                     <td>{index + 1}</td>
+
                     <td>
                       <strong>{emp.name}</strong>
                     </td>
+
                     <td>{emp.email}</td>
+
                     <td>{emp.department}</td>
+
                     <td>
                       {emp.skills && emp.skills.length > 0 ? (
                         emp.skills.map((skill, i) => (
-                          <span key={i} className="skill-tag">
+                          <span
+                            key={i}
+                            className="skill-tag"
+                          >
                             {skill}
                           </span>
                         ))
                       ) : (
-                        <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>None</span>
+                        <span
+                          style={{
+                            color: '#94a3b8',
+                            fontSize: '0.85rem'
+                          }}
+                        >
+                          None
+                        </span>
                       )}
                     </td>
+
                     <td>
                       <span className={getScoreClass(emp.performanceScore)}>
                         {emp.performanceScore}
                       </span>
                     </td>
+
                     <td>{emp.experience}</td>
+
                     <td>
                       <div className="action-buttons">
+
                         <Link
                           to={`/employees/edit/${emp._id}`}
                           className="btn btn-secondary btn-sm"
                         >
                           Edit
                         </Link>
+
                         <button
                           className="btn btn-danger btn-sm"
                           onClick={() => handleDelete(emp._id, emp.name)}
                         >
                           Delete
                         </button>
+
                       </div>
                     </td>
+
                   </tr>
                 ))}
+
               </tbody>
+
             </table>
+
           </div>
         )}
       </div>
 
-      {/* Link to AI Recommendations */}
+      {/* AI Analysis Button */}
       {employees.length > 0 && (
-        <div style={{ marginTop: '16px', textAlign: 'right' }}>
-          <Link to="/ai-recommend" className="btn btn-success">
-            🤖 Get AI Recommendations
+        <div
+          style={{
+            marginTop: '16px',
+            textAlign: 'right'
+          }}
+        >
+          <Link
+            to="/ai-recommend"
+            className="btn btn-success"
+          >
+            🤖 Analyze Complaints
           </Link>
         </div>
       )}
+
     </div>
   );
 }

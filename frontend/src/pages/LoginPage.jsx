@@ -49,7 +49,7 @@ function LoginPage() {
     <div className="auth-wrapper">
       <div className="auth-card">
         <h2>Welcome Back 👋</h2>
-        <p>Login to access Employee Analytics</p>
+        <p>Login to Smart Complaint Management System</p>
 
         {/* Error message */}
         {error && <div className="alert alert-error">{error}</div>}

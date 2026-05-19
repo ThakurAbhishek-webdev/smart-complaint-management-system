@@ -1,11 +1,11 @@
-// src/pages/EditEmployeePage.jsx — Form to edit an existing employee
-
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { getEmployees, updateEmployee } from '../services/api';
 
 function EditEmployeePage() {
-  const { id } = useParams(); // Get employee ID from URL
+
+  const { id } = useParams();
+
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -18,179 +18,286 @@ function EditEmployeePage() {
   });
 
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  // Load existing employee data when component mounts
+  // Load Complaint Data
   useEffect(() => {
-    const fetchEmployee = async () => {
-      try {
-        const res = await getEmployees();
-        // Find this specific employee from the list
-        const emp = res.data.find((e) => e._id === id);
-        if (emp) {
-          setFormData({
-            name: emp.name,
-            email: emp.email,
-            department: emp.department,
-            skills: emp.skills.join(', '), // Convert array back to comma-separated string
-            performanceScore: emp.performanceScore,
-            experience: emp.experience,
-          });
-        } else {
-          setError('Employee not found.');
-        }
-      } catch (err) {
-        setError('Failed to load employee data.');
-      } finally {
-        setFetching(false);
-      }
-    };
 
-    fetchEmployee();
-  }, [id]);
+    fetchComplaint();
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.department ||
-      formData.performanceScore === '' ||
-      formData.experience === ''
-    ) {
-      setError('Please fill all required fields.');
-      return;
-    }
-
-    const score = Number(formData.performanceScore);
-    if (score < 0 || score > 100) {
-      setError('Performance score must be between 0 and 100.');
-      return;
-    }
+  const fetchComplaint = async () => {
 
     try {
-      setLoading(true);
-      await updateEmployee(id, formData);
-      navigate('/employees');
+
+      const response = await getEmployees();
+
+      const complaints = response.data;
+
+      const complaint = complaints.find(
+        (item) => item._id === id
+      );
+
+      if (!complaint) {
+
+        setError('Complaint not found');
+        return;
+      }
+
+      setFormData({
+        name: complaint.name || '',
+        email: complaint.email || '',
+        department: complaint.department || '',
+        skills: complaint.skills?.join(', ') || '',
+        performanceScore: complaint.performanceScore || '',
+        experience: complaint.experience || '',
+      });
+
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update employee.');
+
+      console.log(err);
+
+      setError('Failed to load complaint');
+
     } finally {
+
       setLoading(false);
     }
   };
 
-  if (fetching) return <div className="loading">Loading employee data...</div>;
+  // Handle Input Change
+  const handleChange = (e) => {
+
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  // Update Complaint
+  const handleSubmit = async (e) => {
+
+    e.preventDefault();
+
+    try {
+
+      setLoading(true);
+      setError('');
+
+      await updateEmployee(id, {
+
+        ...formData,
+
+        skills: formData.skills
+          .split(',')
+          .map((item) => item.trim()),
+
+        performanceScore: Number(formData.performanceScore),
+
+        experience: formData.experience,
+
+      });
+
+      navigate('/employees');
+
+    } catch (err) {
+
+      console.log(err);
+
+      setError('Failed to update complaint');
+
+    } finally {
+
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+
+    return (
+      <div className="loading">
+        Loading complaint...
+      </div>
+    );
+  }
 
   return (
     <div className="page-wrapper">
+
+      {/* Header */}
       <div className="page-header">
-        <h1>✏️ Edit Employee</h1>
-        <Link to="/employees" className="btn btn-secondary">
-          ← Back to List
+
+        <h1>✏️ Edit Complaint</h1>
+
+        <Link
+          to="/employees"
+          className="btn btn-secondary"
+        >
+          ← Back to Complaints
         </Link>
+
       </div>
 
-      <div className="card" style={{ maxWidth: '700px' }}>
-        {error && <div className="alert alert-error">{error}</div>}
+      {/* Error */}
+      {error && (
+        <div className="alert alert-error">
+          {error}
+        </div>
+      )}
+
+      {/* Form */}
+      <div className="card">
 
         <form onSubmit={handleSubmit}>
-          <div className="form-row">
+
+          <div className="form-grid">
+
+            {/* Name */}
             <div className="form-group">
-              <label>Employee Name *</label>
+
+              <label>Complainant Name *</label>
+
               <input
                 type="text"
                 name="name"
-                id="edit-name"
                 value={formData.name}
                 onChange={handleChange}
+                required
               />
+
             </div>
+
+            {/* Email */}
             <div className="form-group">
+
               <label>Email Address *</label>
+
               <input
                 type="email"
                 name="email"
-                id="edit-email"
                 value={formData.email}
                 onChange={handleChange}
+                required
               />
-            </div>
-          </div>
 
-          <div className="form-row">
+            </div>
+
+            {/* Category */}
             <div className="form-group">
-              <label>Department *</label>
+
+              <label>Complaint Category *</label>
+
               <select
                 name="department"
-                id="edit-department"
                 value={formData.department}
                 onChange={handleChange}
+                required
               >
-                <option value="">-- Select Department --</option>
-                <option>Engineering</option>
-                <option>Marketing</option>
-                <option>Sales</option>
-                <option>Human Resources</option>
-                <option>Finance</option>
-                <option>Operations</option>
-                <option>Design</option>
-                <option>Product</option>
+                <option value="">
+                  -- Select Category --
+                </option>
+
+                <option>
+                  Water Supply
+                </option>
+
+                <option>
+                  Electricity
+                </option>
+
+                <option>
+                  Garbage
+                </option>
+
+                <option>
+                  Road Damage
+                </option>
+
+                <option>
+                  Internet
+                </option>
+
+                <option>
+                  Sanitation
+                </option>
+
               </select>
+
             </div>
+
+            {/* Description */}
             <div className="form-group">
-              <label>Skills (comma-separated)</label>
+
+              <label>Complaint Description</label>
+
               <input
                 type="text"
                 name="skills"
-                id="edit-skills"
                 value={formData.skills}
                 onChange={handleChange}
               />
-            </div>
-          </div>
 
-          <div className="form-row">
+            </div>
+
+            {/* Priority */}
             <div className="form-group">
-              <label>Performance Score (0–100) *</label>
-              <input
-                type="number"
+
+              <label>Complaint Priority *</label>
+
+              <select
                 name="performanceScore"
-                id="edit-score"
-                min="0"
-                max="100"
                 value={formData.performanceScore}
                 onChange={handleChange}
-              />
+                required
+              >
+                <option value="">
+                  Select Priority
+                </option>
+
+                <option value="90">
+                  High
+                </option>
+
+                <option value="60">
+                  Medium
+                </option>
+
+                <option value="30">
+                  Low
+                </option>
+
+              </select>
+
             </div>
+
+            {/* Location */}
             <div className="form-group">
-              <label>Years of Experience *</label>
+
+              <label>Location *</label>
+
               <input
-                type="number"
+                type="text"
                 name="experience"
-                id="edit-experience"
-                min="0"
                 value={formData.experience}
                 onChange={handleChange}
+                required
               />
+
             </div>
+
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
-            id="update-emp-btn"
             className="btn btn-primary"
-            disabled={loading}
           >
-            {loading ? 'Updating...' : 'Update Employee'}
+            Update Complaint
           </button>
+
         </form>
+
       </div>
     </div>
   );
